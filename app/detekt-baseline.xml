@@ -39,7 +39,7 @@
     <ID>CyclomaticComplexMethod:MainActivity.kt$MainActivity$private fun setupOptionsMenu()</ID>
     <ID>CyclomaticComplexMethod:MonthView.kt$MonthView$override fun onDraw(canvas: Canvas)</ID>
     <ID>CyclomaticComplexMethod:MyWidgetMonthlyProvider.kt$MyWidgetMonthlyProvider$private fun updateDays(context: Context, views: RemoteViews, days: List&lt;DayMonthly&gt;)</ID>
-    <ID>CyclomaticComplexMethod:Parser.kt$Parser$fun parseRepeatInterval(fullString: String, startTS: Long): EventRepetition</ID>
+    <ID>CyclomaticComplexMethod:Parser.kt$Parser$fun parseRepeatInterval( fullString: String, startTS: Long, timeZone: DateTimeZone = DateTimeZone.getDefault(), ): EventRepetition</ID>
     <ID>CyclomaticComplexMethod:SettingsActivity.kt$SettingsActivity$override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?)</ID>
     <ID>CyclomaticComplexMethod:SettingsActivity.kt$SettingsActivity$private fun parseFile(inputStream: InputStream?)</ID>
     <ID>CyclomaticComplexMethod:TaskActivity.kt$TaskActivity$private fun getOrderString(repeatRule: Int): String</ID>
@@ -392,7 +392,7 @@
     <ID>NestedBlockDepth:MainActivity.kt$MainActivity$private fun checkIsViewIntent()</ID>
     <ID>NestedBlockDepth:MonthView.kt$MonthView$override fun onDraw(canvas: Canvas)</ID>
     <ID>NestedBlockDepth:MyWidgetMonthlyProvider.kt$MyWidgetMonthlyProvider$private fun updateDays(context: Context, views: RemoteViews, days: List&lt;DayMonthly&gt;)</ID>
-    <ID>NestedBlockDepth:Parser.kt$Parser$fun parseRepeatInterval(fullString: String, startTS: Long): EventRepetition</ID>
+    <ID>NestedBlockDepth:Parser.kt$Parser$fun parseRepeatInterval( fullString: String, startTS: Long, timeZone: DateTimeZone = DateTimeZone.getDefault(), ): EventRepetition</ID>
     <ID>NestedBlockDepth:SettingsActivity.kt$SettingsActivity$private fun parseFile(inputStream: InputStream?)</ID>
     <ID>NestedBlockDepth:SmallMonthView.kt$SmallMonthView$override fun onDraw(canvas: Canvas)</ID>
     <ID>NestedBlockDepth:WeekFragment.kt$WeekFragment$@SuppressLint("NewApi") private fun addAllDayEvent(event: Event)</ID>

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated holiday data
 
+### Fixed
+- Fixed recurring events shifting by an hour or a day when the event's time zone differs from the device's ([#165], [#506])
+
 ## [1.12.1] - 2026-10-22
 ### Changed
 - Updated translations
@@ -244,6 +247,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#135]: https://github.com/FossifyOrg/Calendar/issues/135
 [#138]: https://github.com/FossifyOrg/Calendar/issues/138
 [#148]: https://github.com/FossifyOrg/Calendar/issues/148
+[#165]: https://github.com/FossifyOrg/Calendar/issues/165
 [#196]: https://github.com/FossifyOrg/Calendar/issues/196
 [#217]: https://github.com/FossifyOrg/Calendar/issues/217
 [#262]: https://github.com/FossifyOrg/Calendar/issues/262
@@ -254,6 +258,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#462]: https://github.com/FossifyOrg/Calendar/issues/462
 [#484]: https://github.com/FossifyOrg/Calendar/issues/484
 [#486]: https://github.com/FossifyOrg/Calendar/issues/486
+[#506]: https://github.com/FossifyOrg/Calendar/issues/506
 [#521]: https://github.com/FossifyOrg/Calendar/issues/521
 [#550]: https://github.com/FossifyOrg/Calendar/issues/550
 [#551]: https://github.com/FossifyOrg/Calendar/issues/551

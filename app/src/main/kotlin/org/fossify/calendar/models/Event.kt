@@ -33,6 +33,7 @@ import org.fossify.commons.extensions.addBitIf
 import org.joda.time.DateTime
 import org.joda.time.DateTimeConstants
 import org.joda.time.DateTimeZone
+import org.joda.time.LocalDate
 import org.joda.time.Weeks
 import java.io.Serializable
 
@@ -74,7 +75,7 @@ data class Event(
     }
 
     fun addIntervalTime(original: Event) {
-        val oldStart = Formatter.getDateTimeFromTS(startTS)
+        val oldStart = Formatter.getDateTimeFromTS(startTS, getRecurrenceTimeZone())
         val newStart = when (repeatInterval) {
             DAY -> oldStart.plusDays(1)
             else -> {
@@ -98,15 +99,28 @@ data class Event(
                         oldStart.plusDays(1)
                     }
 
-                    else -> oldStart.plusSeconds(repeatInterval)
+                    else -> oldStart.plusDays((repeatInterval / DAY).coerceAtLeast(1))
                 }
             }
         }
 
-        val newStartTS = newStart.seconds()
+        val newStartTS = newStart.withWallClockOf(original).seconds()
         val newEndTS = newStartTS + (endTS - startTS)
         startTS = newStartTS
         endTS = newEndTS
+    }
+
+    // Stepping from one occurrence to the next must not carry over a shift caused by a DST gap, so always re-apply the
+    // time of the first occurrence. A time inside the gap uses the offset from before it, like a DATE-TIME in RFC 5545.
+    private fun DateTime.withWallClockOf(original: Event): DateTime {
+        val wallClock = Formatter.getDateTimeFromTS(original.startTS, zone).toLocalTime()
+        val localDateTime = toLocalDate().toLocalDateTime(wallClock)
+        return if (zone.isLocalDateTimeGap(localDateTime)) {
+            val offsetBeforeGap = DateTimeZone.forOffsetMillis(zone.getOffset(minusDays(1)))
+            localDateTime.toDateTime(offsetBeforeGap).withZone(zone)
+        } else {
+            localDateTime.toDateTime(zone)
+        }
     }
 
     // if an event should happen on 29th Feb. with Same Day yearly repetition, show it only on leap years
@@ -130,7 +144,7 @@ data class Event(
             return newDateTime
         }
 
-        while (newDateTime.dayOfMonth().maximumValue < Formatter.getDateTimeFromTS(original.startTS)
+        while (newDateTime.dayOfMonth().maximumValue < Formatter.getDateTimeFromTS(original.startTS, currStart.zone)
                 .dayOfMonth().maximumValue
         ) {
             newDateTime = newDateTime.plusMonths(repeatInterval / MONTH)
@@ -157,7 +171,7 @@ data class Event(
 
         // check if it should be for example Fourth Monday, or Last Monday
         if (forceLastWeekday && (order == 3 || order == 4)) {
-            val originalDateTime = Formatter.getDateTimeFromTS(original.startTS)
+            val originalDateTime = Formatter.getDateTimeFromTS(original.startTS, currStart.zone)
             val isLastWeekday =
                 originalDateTime.monthOfYear != originalDateTime.plusDays(7).monthOfYear
             if (isLastWeekday)
@@ -222,10 +236,10 @@ data class Event(
         if (repeatInterval == WEEK) {
             return true // optimization for events that repeat every week
         }
-        val initialDate = Formatter.getDateFromTS(startTimes[id!!]!!)
+        val initialDate = LocalDate(startTimes[id!!]!! * 1000L, getRecurrenceTimeZone())
         val daysSinceWeekStart = Math.floorMod(initialDate.dayOfWeek - DateTimeConstants.MONDAY, 7)
         val initialWeekStart = initialDate.minusDays(daysSinceWeekStart)
-        val currentDate = Formatter.getDateFromTS(startTS)
+        val currentDate = LocalDate(startTS * 1000L, getRecurrenceTimeZone())
         val weeks = Weeks.weeksBetween(initialWeekStart, currentDate).weeks
         return weeks % (repeatInterval / WEEK) == 0
     }
@@ -260,6 +274,11 @@ data class Event(
         } else {
             DateTimeZone.getDefault().id
         }
+    }
+
+    // all-day events have no real time zone, they are stored as midnight on the device and stay on their dates
+    fun getRecurrenceTimeZone(): DateTimeZone {
+        return if (getIsAllDay()) DateTimeZone.getDefault() else Formatter.getDateTimeZoneOrDefault(timeZone)
     }
 
     fun isAttendeeInviteDeclined() = attendees.any {
