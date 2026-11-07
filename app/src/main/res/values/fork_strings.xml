@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fork_display_time_zone" translatable="false">Display time zone</string>
+    <string name="fork_show_time_in" translatable="false">Show %s time</string>
+    <string name="fork_back_to_device_time" translatable="false">Back to device time (%s)</string>
+    <string name="fork_showing_time_in" translatable="false">Showing times in %s</string>
+    <string name="fork_switching_time_zone" translatable="false">Switching time zone…</string>
+</resources>
