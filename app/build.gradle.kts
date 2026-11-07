@@ -84,6 +84,7 @@ android {
             }
             providers.gradleProperty("FORK_APP_ID_SUFFIX").orNull?.let {
                 applicationIdSuffix = it
+                buildFeatures.resValues = true
                 resValue("string", "app_launcher_name", "Calendar TZ")
             }
         }
