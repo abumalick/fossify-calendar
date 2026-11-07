@@ -22,6 +22,9 @@ object Formatter {
     private const val PATTERN_HOURS_12 = "h a"
     private const val PATTERN_HOURS_24 = "HH"
 
+    fun getDateTimeZoneOrDefault(id: String): DateTimeZone =
+        if (id in DateTimeZone.getAvailableIDs()) DateTimeZone.forID(id) else DateTimeZone.getDefault()
+
     fun getDateFromCode(context: Context, dayCode: String, shortMonth: Boolean = false): String {
         val dateTime = getDateTimeFromCode(dayCode)
         val day = dateTime.toString(DAY_PATTERN)

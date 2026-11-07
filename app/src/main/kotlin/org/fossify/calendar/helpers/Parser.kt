@@ -14,7 +14,11 @@ import kotlin.math.floor
 
 class Parser {
     // from RRULE:FREQ=DAILY;COUNT=5 to Daily, 5x...
-    fun parseRepeatInterval(fullString: String, startTS: Long): EventRepetition {
+    fun parseRepeatInterval(
+        fullString: String,
+        startTS: Long,
+        timeZone: DateTimeZone = DateTimeZone.getDefault(),
+    ): EventRepetition {
         val parts = fullString.split(";").filter { it.isNotEmpty() }
         var repeatInterval = 0
         var repeatRule = 0
@@ -31,7 +35,7 @@ class Parser {
             if (key == FREQ) {
                 repeatInterval = getFrequencySeconds(value)
                 if (value == WEEKLY) {
-                    val start = Formatter.getDateTimeFromTS(startTS)
+                    val start = Formatter.getDateTimeFromTS(startTS, timeZone)
                     repeatRule = 1 shl (start.dayOfWeek - 1)
                 } else if (value == MONTHLY || value == YEARLY) {
                     repeatRule = REPEAT_SAME_DAY
@@ -39,7 +43,7 @@ class Parser {
                     val interval = fullString.substringAfter("$INTERVAL=").substringBefore(";")
                     // properly handle events repeating by 14 days or so, just add a repeat rule to specify a day of the week
                     if (interval.areDigitsOnly() && interval.toInt() % 7 == 0) {
-                        val dateTime = Formatter.getDateTimeFromTS(startTS)
+                        val dateTime = Formatter.getDateTimeFromTS(startTS, timeZone)
                         repeatRule = 1 shl (dateTime.dayOfWeek - 1)
                     } else if (fullString.contains("BYDAY")) {
                         // some services use weekly repetition for repeating on specific week days, some use daily
@@ -157,7 +161,7 @@ class Parser {
 
     private fun getByMonth(event: Event) = when {
         event.repeatInterval.isXYearlyRepetition() -> {
-            val start = Formatter.getDateTimeFromTS(event.startTS)
+            val start = Formatter.getDateTimeFromTS(event.startTS, event.getRecurrenceTimeZone())
             ";$BYMONTH=${start.monthOfYear}"
         }
 
@@ -173,7 +177,7 @@ class Parser {
         event.repeatInterval.isXMonthlyRepetition() || event.repeatInterval.isXYearlyRepetition() -> when (event.repeatRule) {
             REPEAT_LAST_DAY -> ";$BYMONTHDAY=-1"
             REPEAT_ORDER_WEEKDAY_USE_LAST, REPEAT_ORDER_WEEKDAY -> {
-                val start = Formatter.getDateTimeFromTS(event.startTS)
+                val start = Formatter.getDateTimeFromTS(event.startTS, event.getRecurrenceTimeZone())
                 val dayOfMonth = start.dayOfMonth
                 val isLastWeekday = start.monthOfYear != start.plusDays(7).monthOfYear
                 val order = if (isLastWeekday) "-1" else ((dayOfMonth - 1) / 7 + 1).toString()

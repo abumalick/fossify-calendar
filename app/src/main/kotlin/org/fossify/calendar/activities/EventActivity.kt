@@ -51,6 +51,7 @@ import org.fossify.calendar.extensions.getShortDaysFromBitmask
 import org.fossify.calendar.extensions.isXMonthlyRepetition
 import org.fossify.calendar.extensions.isXWeeklyRepetition
 import org.fossify.calendar.extensions.isXYearlyRepetition
+import org.fossify.calendar.extensions.rotateWeekdayBits
 import org.fossify.calendar.extensions.notifyEvent
 import org.fossify.calendar.extensions.seconds
 import org.fossify.calendar.extensions.shareEvents
@@ -665,7 +666,7 @@ class EventActivity : SimpleActivity() {
                 binding.eventTimeZone.text != mEvent.getTimeZoneString() ||
                 reminders != mEvent.getReminders() ||
                 mRepeatInterval != mEvent.repeatInterval ||
-                mRepeatRule != mEvent.repeatRule ||
+                getRepeatRuleInEventZone() != mEvent.repeatRule ||
                 mRepeatLimit != mEvent.repeatLimit ||
                 attendeesChanged() ||
                 mAvailability != mEvent.availability ||
@@ -742,7 +743,7 @@ class EventActivity : SimpleActivity() {
         mReminder3Type = mEvent.reminder3Type
         mRepeatInterval = mEvent.repeatInterval
         mRepeatLimit = mEvent.repeatLimit
-        mRepeatRule = mEvent.repeatRule
+        mRepeatRule = getRepeatRuleInShownZone(mEvent.repeatRule)
         mCalendarId = mEvent.calendarId
         mEventCalendarId = mEvent.getCalDAVCalendarId()
         mAvailability = mEvent.availability
@@ -868,6 +869,21 @@ class EventActivity : SimpleActivity() {
         showEventRepeatIntervalDialog(mRepeatInterval) {
             setRepeatInterval(it)
         }
+    }
+
+    // Unless time zones can be changed here, this screen shows the device's weekdays,
+    // while weekly rules are evaluated in the event's time zone.
+    private fun getRepeatRuleInEventZone() = rotateWeeklyRule(mRepeatRule, getWeekdayShiftToEventZone())
+
+    private fun getRepeatRuleInShownZone(rule: Int) = rotateWeeklyRule(rule, -getWeekdayShiftToEventZone())
+
+    private fun getWeekdayShiftToEventZone(): Int {
+        val eventZoneStart = mEventStartDateTime.withZone(mEvent.getRecurrenceTimeZone())
+        return if (config.allowChangingTimeZones) 0 else eventZoneStart.dayOfWeek - mEventStartDateTime.dayOfWeek
+    }
+
+    private fun rotateWeeklyRule(rule: Int, days: Int): Int {
+        return if (mRepeatInterval.isXWeeklyRepetition()) rule.rotateWeekdayBits(Math.floorMod(days, 7)) else rule
     }
 
     private fun setRepeatInterval(interval: Int) {
@@ -1688,7 +1704,7 @@ class EventActivity : SimpleActivity() {
                 if (mIsAllDayEvent || timeZone.isEmpty()) DateTimeZone.getDefault().id else timeZone
             flags = mEvent.flags.addBitIf(binding.eventAllDay.isChecked, FLAG_ALL_DAY)
             repeatLimit = if (repeatInterval == 0) 0 else mRepeatLimit
-            repeatRule = mRepeatRule
+            repeatRule = getRepeatRuleInEventZone()
             attendees =
                 if (mEventCalendarId == STORED_LOCALLY_ONLY) emptyList() else getAllAttendees(true)
             calendarId = newCalendarId
