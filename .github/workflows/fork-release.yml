@@ -1,0 +1,55 @@
+name: Fork release
+
+on:
+  push:
+    tags:
+      - "v*-abu.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+
+      - name: Run unit tests
+        run: ./gradlew :app:testFossDebugUnitTest
+
+      - name: Build signed APK
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        run: |
+          export SIGNING_STORE_FILE="$RUNNER_TEMP/release.keystore"
+          base64 -d <<<"$SIGNING_KEYSTORE_BASE64" > "$SIGNING_STORE_FILE"
+          upstream_code="$(sed -n 's/^VERSION_CODE=//p' gradle.properties)"
+          ./gradlew :app:assembleFossRelease \
+            -PVERSION_NAME="${GITHUB_REF_NAME#v}" \
+            -PVERSION_CODE="$((upstream_code * 1000 + GITHUB_RUN_NUMBER))" \
+            -PFORK_APP_ID_SUFFIX=.debug
+          rm -f "$SIGNING_STORE_FILE"
+
+      - name: Verify signature
+        run: |
+          build_tools="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          apk="$(ls app/build/outputs/apk/foss/release/*-release.apk)"
+          "$build_tools/apksigner" verify --print-certs "$apk" | grep 'certificate SHA-256'
+          mv "$apk" "fossify-calendar-${GITHUB_REF_NAME#v}.apk"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "fossify-calendar-${GITHUB_REF_NAME#v}.apk" \
+            --title "$GITHUB_REF_NAME" --generate-notes
