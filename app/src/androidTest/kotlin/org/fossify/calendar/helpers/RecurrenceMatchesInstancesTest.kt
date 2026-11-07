@@ -22,6 +22,7 @@ import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +66,7 @@ class RecurrenceMatchesInstancesTest {
         originalDisplayCalendars = context.config.displayCalendars
         originalQuickFilterCalendars = context.config.quickFilterCalendars
         deleteProviderCalendars()
+        waitForDefaultCalendar()
 
         val calendarValues = ContentValues().apply {
             put(Calendars.ACCOUNT_NAME, ACCOUNT)
@@ -107,6 +109,15 @@ class RecurrenceMatchesInstancesTest {
         DateTimeZone.setDefault(originalDeviceZone)
     }
 
+    // a new database inserts its default calendar with a fixed id from a background thread, replacing whatever has it
+    private fun waitForDefaultCalendar() {
+        val deadline = System.currentTimeMillis() + DEFAULT_CALENDAR_TIMEOUT_MS
+        while (context.calendarsDB.getCalendarWithId(LOCAL_CALENDAR_ID) == null) {
+            check(System.currentTimeMillis() < deadline) { "default calendar was not created" }
+            Thread.sleep(DEFAULT_CALENDAR_RETRY_MS)
+        }
+    }
+
     private fun deleteProviderCalendars() {
         resolver.delete(syncAdapterCalendars, "${Calendars.ACCOUNT_NAME} = ?", arrayOf(ACCOUNT))
     }
@@ -146,7 +157,9 @@ class RecurrenceMatchesInstancesTest {
     }
 
     private fun fossifyByTitle(): Map<String, List<Long>> {
-        context.calDAVHelper.refreshCalendars(showToasts = false, scheduleNextSync = false) {}
+        var refreshed = false
+        context.calDAVHelper.refreshCalendars(showToasts = false, scheduleNextSync = false) { refreshed = true }
+        assertTrue("CalDAV refresh did not run", refreshed)
         var result = emptyMap<String, List<Long>>()
         context.eventsHelper.getEventsSync(windowStart / 1000L, windowEnd / 1000L, applyTypeFilter = false) { events ->
             result = events
@@ -240,5 +253,7 @@ class RecurrenceMatchesInstancesTest {
     private companion object {
         const val ACCOUNT = "fossify-recurrence-test"
         const val SERIES_COUNT = 19
+        const val DEFAULT_CALENDAR_TIMEOUT_MS = 10_000L
+        const val DEFAULT_CALENDAR_RETRY_MS = 100L
     }
 }
