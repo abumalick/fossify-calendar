@@ -2,6 +2,17 @@
 
 Personal build of [Fossify Calendar](https://github.com/FossifyOrg/Calendar). `main` is upstream plus a few commits on top.
 
+## Display time zone
+
+The globe button in the main toolbar switches the whole app between the device's time zone and a chosen one, and back. The first tap, or "Display time zone" in the overflow menu, picks the zone. While another zone is shown, the button has a dot and its label names that zone. Code: `helpers/DisplayTimeZone.kt`, called from `App` and `MainActivity`.
+
+Switching behaves as if the device had changed time zone:
+
+- Synced all-day events are stored as midnight in the default zone, so a switch re-syncs CalDAV calendars and they stay on their dates. The screen ignores touches until that is done. All-day events kept only in this app (birthdays, anniversaries, holidays, imported files, local tasks) are not moved and show one day off while another zone is shown, the same as in upstream when travelling. Editing one of them while another zone is shown saves the shifted date.
+- New events take the zone that is shown.
+- For a recurring event with a cancelled or moved occurrence within an hour or two of midnight, the wrong occurrence can be hidden or shown after a switch, because exceptions are stored by date and the dates seen in earlier zones are kept.
+- If the device's own zone changes while another zone is shown, parts of the app use the new device zone until the main screen is opened again.
+
 ## Updating from upstream
 
 ```sh

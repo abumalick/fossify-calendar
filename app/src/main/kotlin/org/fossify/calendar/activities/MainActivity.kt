@@ -45,6 +45,7 @@ import org.fossify.calendar.helpers.ANNIVERSARY_EVENT
 import org.fossify.calendar.helpers.BIRTHDAY_EVENT
 import org.fossify.calendar.helpers.DAILY_VIEW
 import org.fossify.calendar.helpers.DAY_CODE
+import org.fossify.calendar.helpers.DisplayTimeZone
 import org.fossify.calendar.helpers.EVENTS_LIST_VIEW
 import org.fossify.calendar.helpers.EVENT_ID
 import org.fossify.calendar.helpers.EVENT_OCCURRENCE_TS
@@ -340,6 +341,7 @@ class MainActivity : SimpleActivity(), RefreshRecyclerViewListener {
 
     private fun setupOptionsMenu() = binding.apply {
         mainMenu.requireToolbar().inflateMenu(R.menu.menu_main)
+        DisplayTimeZone.addMenuItems(this@MainActivity, mainMenu.requireToolbar().menu)
         mainMenu.toggleHideOnScroll(false)
         mainMenu.setupMenu()
 
