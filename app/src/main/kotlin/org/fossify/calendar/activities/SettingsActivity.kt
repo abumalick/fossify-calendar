@@ -41,6 +41,7 @@ import org.fossify.calendar.helpers.DIM_COMPLETED_TASKS
 import org.fossify.calendar.helpers.DIM_PAST_EVENTS
 import org.fossify.calendar.helpers.DISPLAY_DESCRIPTION
 import org.fossify.calendar.helpers.DISPLAY_PAST_EVENTS
+import org.fossify.calendar.helpers.DisplayTimeZoneSettings
 import org.fossify.calendar.helpers.EVENTS_LIST_VIEW
 import org.fossify.calendar.helpers.Formatter
 import org.fossify.calendar.helpers.HIGHLIGHT_WEEKENDS
@@ -163,6 +164,7 @@ class SettingsActivity : SimpleActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         mStoredPrimaryColor = getProperPrimaryColor()
+        DisplayTimeZoneSettings.addSettingsItem(this, binding.settingsAllowChangingTimeZonesHolder)
 
         setupEdgeToEdge(padBottomSystem = listOf(binding.settingsNestedScrollview))
         setupMaterialScrollListener(
