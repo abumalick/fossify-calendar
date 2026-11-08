@@ -82,8 +82,7 @@ android {
             if (keystorePropertiesFile.exists() || hasSigningVars()) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            providers.gradleProperty("FORK_APP_ID_SUFFIX").orNull?.let {
-                applicationIdSuffix = it
+            if (providers.gradleProperty("FORK_APP_ID").isPresent) {
                 buildFeatures.resValues = true
                 resValue("string", "app_launcher_name", "Calendar TZ")
             }
@@ -135,6 +134,13 @@ android {
         language {
             enableSplit = false
         }
+    }
+}
+
+// the fork's release has its own application ID; the namespace, and so every class name, stays upstream's
+providers.gradleProperty("FORK_APP_ID").orNull?.let { forkAppId ->
+    androidComponents {
+        onVariants(selector().withBuildType("release")) { it.applicationId.set(forkAppId) }
     }
 }
 

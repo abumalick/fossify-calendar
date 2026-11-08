@@ -37,7 +37,7 @@ jobs:
           ./gradlew :app:assembleFossRelease \
             -PVERSION_NAME="${GITHUB_REF_NAME#v}" \
             -PVERSION_CODE="$((upstream_code * 1000 + GITHUB_RUN_NUMBER))" \
-            -PFORK_APP_ID_SUFFIX=.debug
+            -PFORK_APP_ID=org.fossify.calendar.tz
           rm -f "$SIGNING_STORE_FILE"
 
       - name: Verify signature

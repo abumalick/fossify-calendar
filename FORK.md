@@ -30,9 +30,12 @@ Push a tag named `v<upstream version>-abu.<n>`, for example `v1.12.1-abu.1`. `.g
 
 The version code is `<upstream VERSION_CODE> * 1000 + <workflow run number>`, so no tracked file changes for a release. Do not rename the workflow file: that resets the run number, and Android refuses updates with a lower version code.
 
-The release build uses the application ID `org.fossify.calendar.debug` so it can sit next to the upstream app. Fossify Commons derives icon alias class names from the application ID and only knows how to strip `.debug`, so any other suffix breaks changing the app icon colour.
+The release build uses its own application ID, `org.fossify.calendar.tz` (`-PFORK_APP_ID` in the workflow), so it installs next to the upstream app and next to debug builds, which keep `org.fossify.calendar.debug`. The namespace stays `org.fossify.calendar`, so classes and manifest names are unchanged. The ID must start with `org.fossify.`: for any other ID, Fossify Commons warns that the app is a fake copy, stops primary colour changes after 50 launches and skips storage permission requests. Two Commons features expect the exact upstream ID and do not work in the release:
 
-Debug builds share that application ID but use a different signing key, so run them and the instrumented tests on a test device that does not have the release installed. Replacing the release there would mean uninstalling it, which deletes its data.
+- Changing the app icon colour shows an error, because Commons derives the launcher alias class names from the application ID.
+- Birthdays and anniversaries of contacts kept only in Fossify Contacts' private storage are not read. Contacts from the system address book still are.
+
+The application ID cannot change again without users reinstalling and losing the app's data.
 
 The upstream workflows do not apply to this fork and are disabled in the repository's Actions settings.
 
